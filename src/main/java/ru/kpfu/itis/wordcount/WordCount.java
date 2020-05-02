@@ -45,12 +45,13 @@ public class WordCount {
         Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-wordcount");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker:9092");
+        props.put(SCHEMA_REGISTRY_URL_CONFIG, "http://schema-registry:8081");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 
         SpecificAvroSerde<WordCountRecord> wordCountAvroSerde = new SpecificAvroSerde<>();
         wordCountAvroSerde.configure(
-                Collections.singletonMap(SCHEMA_REGISTRY_URL_CONFIG, "schema-registry:8081"), false);
+                Collections.singletonMap(SCHEMA_REGISTRY_URL_CONFIG, "http://schema-registry:8081"), false);
 
         final StreamsBuilder builder = new StreamsBuilder();
 
