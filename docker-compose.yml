@@ -1,0 +1,83 @@
+---
+version: '2'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.4.1
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker:
+    image: confluentinc/cp-server:5.4.1
+    hostname: broker
+    container_name: broker
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:9092
+      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'true'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:5.4.1
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - zookeeper
+      - broker
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'
+
+  # This "container" is a workaround to pre-create topics
+  kafka-setup:
+    image: confluentinc/cp-kafka:5.4.1
+    hostname: kafka-setup
+    container_name: kafka-setup
+    depends_on:
+      - broker
+      - zookeeper
+    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+                           cub kafka-ready -b broker:9092 1 40 && \
+                           kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic streams-plaintext-input && \
+                           kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic streams-wordcount-output --config cleanup.policy=compact'"
+    environment:
+      # The following settings are listed here only to satisfy the image's requirements.
+      # We override the image's `command` anyways, hence this container will not start a broker.
+      KAFKA_BROKER_ID: ignored
+      KAFKA_ZOOKEEPER_CONNECT: ignored
+
+  wordcount:
+    image: wordcount:1.0
+    hostname: wordcount
+    container_name: wordcount
+    depends_on:
+      - broker
+    volumes:
+      - $PWD/service-start.sh:/tmp/service-start.sh
+    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+                            sleep 60 && \
+                            echo Waiting a few seconds for topic creation to finish... && \
+                            sleep 5 && \
+                            /tmp/service-start.sh'"
+
+

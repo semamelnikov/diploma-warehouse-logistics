@@ -1,0 +1,15 @@
+{
+  "namespace": "ru.kpfu.itis.wordcount.avro",
+  "type": "record",
+  "name": "WordCountRecord",
+  "fields": [
+    {
+      "name": "word",
+      "type": "string"
+    },
+    {
+      "name": "count",
+      "type": "long"
+    }
+  ]
+}
