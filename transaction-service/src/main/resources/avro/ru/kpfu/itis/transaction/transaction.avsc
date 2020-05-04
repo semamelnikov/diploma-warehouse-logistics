@@ -1,0 +1,27 @@
+{
+  "namespace": "ru.kpfu.itis.transaction.avro",
+  "type": "record",
+  "name": "Transaction",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "name": "shopId",
+      "type": "long"
+    },
+    {
+      "name": "productId",
+      "type": "long"
+    },
+    {
+      "name": "quantity",
+      "type": "int"
+    },
+    {
+      "name": "price",
+      "type": "double"
+    }
+  ]
+}

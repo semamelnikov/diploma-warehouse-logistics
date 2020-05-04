@@ -58,6 +58,7 @@ services:
       - zookeeper
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
                            cub kafka-ready -b broker:9092 1 40 && \
+                           kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic transactions && \
                            kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic streams-plaintext-input && \
                            kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic streams-wordcount-output --config cleanup.policy=compact'"
     environment:
