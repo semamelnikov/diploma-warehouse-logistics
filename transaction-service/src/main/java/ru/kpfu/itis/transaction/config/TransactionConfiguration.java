@@ -7,6 +7,7 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import ru.kpfu.itis.transaction.avro.Transaction;
 import ru.kpfu.itis.transaction.domain.model.Topic;
 
@@ -16,6 +17,7 @@ import java.util.Properties;
 import static io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 
 @Configuration
+@PropertySource("classpath:application.properties")
 public class TransactionConfiguration {
 
     @Value("${transaction-service.kafka.server}")

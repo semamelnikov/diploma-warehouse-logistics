@@ -76,9 +76,23 @@ services:
     volumes:
       - $PWD/service-start.sh:/tmp/service-start.sh
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                            sleep 60 && \
+                            sleep 120 && \
                             echo Waiting a few seconds for topic creation to finish... && \
                             sleep 5 && \
                             /tmp/service-start.sh'"
 
-
+  transaction-service:
+    image: transaction-service:1.0
+    hostname: transaction-service
+    container_name: transaction-service
+    depends_on:
+      - broker
+    ports:
+      - "8080:8080"
+    volumes:
+      - $PWD/transaction-service/service-start.sh:/tmp/service-start.sh
+    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+                            sleep 120 && \
+                            echo Waiting a few seconds for topic creation to finish... && \
+                            sleep 5 && \
+                            /tmp/service-start.sh'"
