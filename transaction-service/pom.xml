@@ -15,6 +15,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>ru.kpfu.itis</groupId>
+            <artifactId>avro-builder</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
@@ -24,10 +29,6 @@
         </dependency>
         <dependency>
             <artifactId>avro</artifactId>
-            <groupId>org.apache.avro</groupId>
-        </dependency>
-        <dependency>
-            <artifactId>avro-maven-plugin</artifactId>
             <groupId>org.apache.avro</groupId>
         </dependency>
         <dependency>
@@ -54,23 +55,6 @@
                     <source>8</source>
                     <target>8</target>
                 </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>avro-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
-                            <sourceDirectory>src/main/resources/avro/ru/kpfu/itis/transaction</sourceDirectory>
-                            <stringType>String</stringType>
-                        </configuration>
-                        <goals>
-                            <goal>schema</goal>
-                        </goals>
-                        <phase>generate-sources</phase>
-                    </execution>
-                </executions>
-                <groupId>org.apache.avro</groupId>
             </plugin>
             <plugin>
                 <groupId>com.spotify</groupId>
