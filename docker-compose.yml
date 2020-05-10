@@ -57,10 +57,10 @@ services:
       - broker
       - zookeeper
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                           cub kafka-ready -b broker:9092 1 40 && \
-                           kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic transactions && \
-                           kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic streams-plaintext-input && \
-                           kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic streams-wordcount-output --config cleanup.policy=compact'"
+                       cub kafka-ready -b broker:9092 1 40 && \
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic transactions && \
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic streams-plaintext-input && \
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic streams-wordcount-output --config cleanup.policy=compact'"
     environment:
       # The following settings are listed here only to satisfy the image's requirements.
       # We override the image's `command` anyways, hence this container will not start a broker.
@@ -76,10 +76,10 @@ services:
     volumes:
       - $PWD/service-start.sh:/tmp/service-start.sh
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                            sleep 120 && \
-                            echo Waiting a few seconds for topic creation to finish... && \
-                            sleep 5 && \
-                            /tmp/service-start.sh'"
+                       sleep 120 && \
+                       echo Waiting a few seconds for topic creation to finish... && \
+                       sleep 5 && \
+                       /tmp/service-start.sh'"
 
   transaction-service:
     image: transaction-service:1.0
@@ -92,10 +92,10 @@ services:
     volumes:
       - $PWD/transaction-service/service-start.sh:/tmp/service-start.sh
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                            sleep 120 && \
-                            echo Waiting a few seconds for topic creation to finish... && \
-                            sleep 5 && \
-                            /tmp/service-start.sh'"
+                       sleep 120 && \
+                       echo Waiting a few seconds for topic creation to finish... && \
+                       sleep 5 && \
+                       /tmp/service-start.sh'"
 
   postgres:
     image: postgres:12
@@ -127,4 +127,9 @@ services:
     volumes:
       - $PWD/warehouse-service/service-start.sh:/tmp/service-start.sh
       - $PWD/db/scripts/:/db/
-    command: "bash -c '/db/db-readiness-check.py version_1.0 && /tmp/service-start.sh'"
+    command: "bash -c '/db/db-readiness-check.py version_1.0 && \
+                       echo Waiting for Kafka to be ready... && \
+                       sleep 100 && \
+                       echo Waiting a few seconds for topic creation to finish... && \
+                       sleep 5 && \
+                       /tmp/service-start.sh'"
