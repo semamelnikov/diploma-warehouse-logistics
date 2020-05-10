@@ -18,6 +18,7 @@
         <module>avro-builder</module>
         <module>transaction-service</module>
         <module>wordcount-service</module>
+        <module>warehouse-service</module>
     </modules>
 
     <repositories>

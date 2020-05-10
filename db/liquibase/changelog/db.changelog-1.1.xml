@@ -15,15 +15,5 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <insert tableName="test_table">
-            <column name="id" value="1"/>
-            <column name="name" value="Semyon"/>
-            <column name="surname" value="Melnikov"/>
-        </insert>
-        <insert tableName="test_table">
-            <column name="id" value="2"/>
-            <column name="name" value="John"/>
-            <column name="surname" value="Doe"/>
-        </insert>
     </changeSet>
 </databaseChangeLog>

@@ -2,9 +2,9 @@
 
 /opt/liquibase/liquibase \
     --driver=org.postgresql.Driver \
-    --url=jdbc:postgresql://postgres:5432/test-db \
+    --url=jdbc:postgresql://postgres:5432/warehouse-db \
     --classpath=/usr/share/java/postgresql.jar \
-    --changeLogFile=/scripts/changelogs/initial-dbchangelog.xml \
+    --changeLogFile=/scripts/changelog/db.changelog-master.xml \
     --username=postgres \
     --password=postgres \
     --contexts=all \

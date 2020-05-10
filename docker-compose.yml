@@ -96,3 +96,35 @@ services:
                             echo Waiting a few seconds for topic creation to finish... && \
                             sleep 5 && \
                             /tmp/service-start.sh'"
+
+  postgres:
+    image: postgres:12
+    hostname: postgres
+    container_name: postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: warehouse-db
+
+  liquibase:
+    image: webdevops/liquibase:postgres
+    hostname: liquibase
+    container_name: liquibase
+    depends_on:
+      - postgres
+    volumes:
+      - $PWD/db/liquibase/:/scripts/
+    command: /scripts/wait_for_postgres_then_init.sh
+
+  warehouse-service:
+    image: warehouse-service:1.0
+    hostname: warehouse-service
+    container_name: warehouse-service
+    depends_on:
+      - liquibase
+    volumes:
+      - $PWD/warehouse-service/service-start.sh:/tmp/service-start.sh
+      - $PWD/db/scripts/:/db/
+    command: "bash -c '/db/db-readiness-check.py version_1.0 && /tmp/service-start.sh'"
