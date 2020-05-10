@@ -4,15 +4,29 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
     <changeSet id="1" author="semyon.melnikov">
-        <insert tableName="test_table">
-            <column name="id" value="1"/>
-            <column name="name" value="Semyon"/>
-            <column name="surname" value="Melnikov"/>
+        <insert tableName="warehouse">
+            <column name="shop_id" value="1"/>
+            <column name="product_id" value="1"/>
+            <column name="in_stock" value="200"/>
+            <column name="delivery_threshold" value="50"/>
         </insert>
-        <insert tableName="test_table">
-            <column name="id" value="2"/>
-            <column name="name" value="John"/>
-            <column name="surname" value="Doe"/>
+        <insert tableName="warehouse">
+            <column name="shop_id" value="1"/>
+            <column name="product_id" value="2"/>
+            <column name="in_stock" value="200"/>
+            <column name="delivery_threshold" value="100"/>
+        </insert>
+        <insert tableName="warehouse">
+            <column name="shop_id" value="2"/>
+            <column name="product_id" value="1"/>
+            <column name="in_stock" value="500"/>
+            <column name="delivery_threshold" value="100"/>
+        </insert>
+        <insert tableName="warehouse">
+            <column name="shop_id" value="2"/>
+            <column name="product_id" value="3"/>
+            <column name="in_stock" value="1000"/>
+            <column name="delivery_threshold" value="400"/>
         </insert>
     </changeSet>
 </databaseChangeLog>
