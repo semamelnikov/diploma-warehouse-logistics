@@ -1,5 +1,5 @@
 {
-  "namespace": "ru.kpfu.itis.transaction.avro",
+  "namespace": "ru.kpfu.itis.delivery.avro",
   "type": "record",
   "name": "Delivery",
   "fields": [

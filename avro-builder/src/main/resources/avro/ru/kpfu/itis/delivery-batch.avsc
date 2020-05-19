@@ -1,0 +1,42 @@
+[
+{
+  "namespace": "ru.kpfu.itis.batch.avro",
+  "type": "record",
+  "name": "ProductQuantity",
+  "fields": [
+    {
+      "name": "productId",
+      "type": "long"
+    },
+    {
+      "name": "quantity",
+      "type": "int"
+    }
+  ]
+},
+{
+  "namespace": "ru.kpfu.itis.batch.avro",
+  "type": "record",
+  "name": "DeliveryBatch",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "default": "id"
+    },
+    {
+      "name": "shopId",
+      "type": "long",
+      "default": -1
+    },
+    {
+      "name": "productQuantities",
+      "type": {
+        "type": "array",
+        "items": "ProductQuantity"
+      },
+      "default": []
+    }
+  ]
+}
+]

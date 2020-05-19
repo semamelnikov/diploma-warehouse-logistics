@@ -11,7 +11,7 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.kpfu.itis.transaction.avro.Delivery;
+import ru.kpfu.itis.delivery.avro.Delivery;
 import ru.kpfu.itis.transaction.avro.Transaction;
 import ru.kpfu.itis.warehouse.domain.model.Topic;
 import ru.kpfu.itis.warehouse.domain.model.entity.WarehouseRecord;
