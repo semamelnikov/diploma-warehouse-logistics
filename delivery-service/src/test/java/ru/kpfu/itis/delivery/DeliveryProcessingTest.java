@@ -12,6 +12,8 @@ import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 import ru.kpfu.itis.batch.avro.DeliveryBatch;
 import ru.kpfu.itis.batch.avro.ProductQuantity;
 import ru.kpfu.itis.delivery.avro.Delivery;
@@ -124,18 +126,52 @@ public class DeliveryProcessingTest {
         Assert.assertEquals(expectedBatchOutputValues, actualBatchOutputValues);
     }
 
+    @Test
+    public void shouldDemonstrateInteractiveQueriesInApplication() throws ExecutionException, InterruptedException {
+        final Topic<String, Delivery> INPUT_TOPIC = getDeliveryTopic();
+        final Topic<Long, DeliveryBatch> OUTPUT_TOPIC = getDeliveryBatchTopic();
+
+        final Properties producerConfig = new Properties();
+        producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, CLUSTER.bootstrapServers());
+        producerConfig.put(ProducerConfig.ACKS_CONFIG, "all");
+        producerConfig.put(ProducerConfig.RETRIES_CONFIG, 0);
+        producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, INPUT_TOPIC.keySerde().serializer().getClass());
+        producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, INPUT_TOPIC.valueSerde().serializer().getClass());
+        producerConfig.put(SCHEMA_REGISTRY_URL_CONFIG, CLUSTER.schemaRegistryUrl());
+
+        final Properties consumerConfig = new Properties();
+        consumerConfig.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, CLUSTER.bootstrapServers());
+        consumerConfig.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, OUTPUT_TOPIC.keySerde().deserializer().getClass());
+        consumerConfig.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OUTPUT_TOPIC.valueSerde().deserializer().getClass());
+        consumerConfig.put(ConsumerConfig.GROUP_ID_CONFIG, "wait-for-output-consumer");
+        consumerConfig.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        consumerConfig.put(SCHEMA_REGISTRY_URL_CONFIG, CLUSTER.schemaRegistryUrl());
+
+        IntegrationTestUtils.produceValuesSynchronously(INPUT_TOPIC.name(), deliveryInputValues, producerConfig);
+        try (ConfigurableApplicationContext context = applicationContext()) {
+            List<KeyValue<Long, DeliveryBatch>> keyValues = IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived(consumerConfig, OUTPUT_TOPIC.name(), expectedBatchOutputValues.size());
+
+            List<DeliveryBatch> actualBatchOutputValues = keyValues.stream()
+                    .map(kv -> kv.value)
+                    .sorted(Comparator.comparing(DeliveryBatch::getId))
+                    .collect(Collectors.toList());
+
+            Assert.assertEquals(expectedBatchOutputValues, actualBatchOutputValues);
+        }
+    }
+
     private Topic<String, Delivery> getDeliveryTopic() {
         SpecificAvroSerde<Delivery> deliverySpecificAvroSerde = new SpecificAvroSerde<>();
         deliverySpecificAvroSerde.configure(
                 Collections.singletonMap(SCHEMA_REGISTRY_URL_CONFIG, CLUSTER.schemaRegistryUrl()), false);
-        return new Topic<>("delivery-" + UUID.randomUUID().toString(), Serdes.String(), deliverySpecificAvroSerde);
+        return new Topic<>("delivery", Serdes.String(), deliverySpecificAvroSerde);
     }
 
     private Topic<Long, DeliveryBatch> getDeliveryBatchTopic() {
         SpecificAvroSerde<DeliveryBatch> deliveryBatchSpecificAvroSerde = new SpecificAvroSerde<>();
         deliveryBatchSpecificAvroSerde.configure(
                 Collections.singletonMap(SCHEMA_REGISTRY_URL_CONFIG, CLUSTER.schemaRegistryUrl()), false);
-        return new Topic<>("delivery-batch-" + UUID.randomUUID().toString(), Serdes.Long(), deliveryBatchSpecificAvroSerde);
+        return new Topic<>("delivery-batch", Serdes.Long(), deliveryBatchSpecificAvroSerde);
     }
 
     private KafkaStreams getProcessingStreams(Topic<String, Delivery> deliveryTopic, Topic<Long, DeliveryBatch> deliveryBatchTopic) {
@@ -179,5 +215,17 @@ public class DeliveryProcessingTest {
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         return props;
+    }
+
+    private ConfigurableApplicationContext applicationContext() {
+        return SpringApplication.run(
+                Application.class,
+                "--server.port=8085",
+                "--delivery-service.kafka.server=" + CLUSTER.bootstrapServers(),
+                "--delivery-service.schema-registry.server=" + CLUSTER.schemaRegistryUrl(),
+                "--delivery-service.kafka.application-id=delivery-service",
+                "--kafka.stateDir=/tmp/kafka-streams",
+                "--environment=test",
+                "--kafka.refreshTopicsMs=1000");
     }
 }
