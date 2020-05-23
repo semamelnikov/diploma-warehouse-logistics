@@ -14,6 +14,7 @@ import ru.kpfu.itis.batch.avro.DeliveryBatch;
 import ru.kpfu.itis.batch.avro.ProductQuantity;
 import ru.kpfu.itis.delivery.avro.Delivery;
 import ru.kpfu.itis.delivery.domain.model.Topic;
+import ru.kpfu.itis.delivery.metrics.ApplicationMetrics;
 
 import java.util.List;
 import java.util.Properties;
@@ -32,12 +33,15 @@ public class DeliveryStreamsConfiguration {
 
     @Bean
     public Topology deliveryTopology(@Qualifier("deliveryTopic") final Topic<String, Delivery> deliveryTopic,
-                                     @Qualifier("deliveryBatchTopic") final Topic<Long, DeliveryBatch> deliveryBatchTopic) {
+                                     @Qualifier("deliveryBatchTopic") final Topic<Long, DeliveryBatch> deliveryBatchTopic,
+                                     final ApplicationMetrics applicationMetrics
+    ) {
         final StreamsBuilder builder = new StreamsBuilder();
         final KStream<String, Delivery> deliveries = builder.stream(
                 deliveryTopic.name(), Consumed.with(deliveryTopic.keySerde(), deliveryTopic.valueSerde()));
 
         deliveries
+                .peek((key, value) -> applicationMetrics.getDeliveryCounter().increment())
                 .groupBy((key, delivery) -> delivery.getShopId(), Grouped.with(Serdes.Long(), deliveryTopic.valueSerde()))
                 .aggregate(
                         DeliveryBatch.newBuilder()::build,
@@ -57,6 +61,7 @@ public class DeliveryStreamsConfiguration {
                                 .withKeySerde(Serdes.Long()).withValueSerde(deliveryBatchTopic.valueSerde())
                 )
                 .toStream()
+                .peek((key, value) -> applicationMetrics.getDeliveryBatchCounter().increment())
                 .to(deliveryBatchTopic.name(), Produced.with(deliveryBatchTopic.keySerde(), deliveryBatchTopic.valueSerde()));
 
         return builder.build();
