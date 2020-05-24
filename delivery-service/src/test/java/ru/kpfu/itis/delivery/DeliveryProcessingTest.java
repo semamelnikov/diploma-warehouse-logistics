@@ -216,6 +216,7 @@ public class DeliveryProcessingTest {
                     .collect(Collectors.toList());
 
             ApplicationMetrics applicationMetrics = (ApplicationMetrics) context.getBean("applicationMetrics");
+
             Assert.assertEquals(deliveryInputValues.size(), (int) applicationMetrics.getDeliveryCounter().count());
             Assert.assertEquals(expectedBatchOutputValues.size(), (int) applicationMetrics.getDeliveryBatchCounter().count());
             Assert.assertEquals(expectedBatchOutputValues, actualBatchOutputValues);
