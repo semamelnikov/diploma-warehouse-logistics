@@ -1,4 +1,4 @@
-FROM rappdw/docker-java-python:zulu1.8.0_222-python3.6.9
+FROM openjdk:8
 
 LABEL maintainer="sema.melnikov@gmail.com"
 
@@ -10,7 +10,4 @@ ARG JAR_FILE=target/delivery-service-1.0.jar
 
 ADD ${JAR_FILE} delivery-service.jar
 
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir psycopg2
-
-CMD ["pip", "--version"]
+CMD ["bash", "--version"]

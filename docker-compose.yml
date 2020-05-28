@@ -135,3 +135,17 @@ services:
                        echo Waiting a few seconds for topic creation to finish... && \
                        sleep 5 && \
                        /tmp/service-start.sh'"
+
+  delivery-service:
+    image: delivery-service:1.0
+    hostname: delivery-service
+    container_name: delivery-service
+    depends_on:
+      - broker
+    volumes:
+      - $PWD/delivery-service/service-start.sh:/tmp/service-start.sh
+    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+                       sleep 120 && \
+                       echo Waiting a few seconds for topic creation to finish... && \
+                       sleep 5 && \
+                       /tmp/service-start.sh'"

@@ -6,7 +6,7 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.*;
-import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.WindowStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +16,7 @@ import ru.kpfu.itis.delivery.avro.Delivery;
 import ru.kpfu.itis.delivery.domain.model.Topic;
 import ru.kpfu.itis.delivery.metrics.ApplicationMetrics;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -43,6 +44,7 @@ public class DeliveryStreamsConfiguration {
         deliveries
                 .peek((key, value) -> applicationMetrics.getDeliveryCounter().increment())
                 .groupBy((key, delivery) -> delivery.getShopId(), Grouped.with(Serdes.Long(), deliveryTopic.valueSerde()))
+                .windowedBy(TimeWindows.of(Duration.ofMinutes(5)).grace(Duration.ZERO))
                 .aggregate(
                         DeliveryBatch.newBuilder()::build,
                         (aggKey, newValue, aggValue) -> {
@@ -57,12 +59,15 @@ public class DeliveryStreamsConfiguration {
                             );
                             return aggValue;
                         },
-                        Materialized.<Long, DeliveryBatch, KeyValueStore<Bytes, byte[]>>as("delivery-batch-store-" + UUID.randomUUID().toString())
-                                .withKeySerde(Serdes.Long()).withValueSerde(deliveryBatchTopic.valueSerde())
+                        Materialized.<Long, DeliveryBatch, WindowStore<Bytes, byte[]>>as("windowed-delivery-batch-store-" + UUID.randomUUID().toString())
+                                .withKeySerde(Serdes.Long())
+                                .withValueSerde(deliveryBatchTopic.valueSerde())
+                                .withRetention(Duration.ofMinutes(5))
                 )
                 .toStream()
                 .peek((key, value) -> applicationMetrics.getDeliveryBatchCounter().increment())
-                .to(deliveryBatchTopic.name(), Produced.with(deliveryBatchTopic.keySerde(), deliveryBatchTopic.valueSerde()));
+                .peek((key, value) -> System.out.println("*: right before to. key: " + key.getClass() + ", value: " + value))
+                .to(deliveryBatchTopic.name(), Produced.with(WindowedSerdes.timeWindowedSerdeFrom(Long.class), deliveryBatchTopic.valueSerde()));
 
         return builder.build();
     }
