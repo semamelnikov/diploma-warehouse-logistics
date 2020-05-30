@@ -5,7 +5,8 @@
   "fields": [
     {
       "name": "id",
-      "type": "string"
+      "type": "string",
+      "default": "id"
     },
     {
       "name": "shopId",

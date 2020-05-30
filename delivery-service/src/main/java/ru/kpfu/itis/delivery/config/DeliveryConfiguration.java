@@ -48,10 +48,10 @@ public class DeliveryConfiguration {
     }
 
     @Bean("deliveryBatchTopic")
-    public Topic<Long, DeliveryBatch> getDeliveryBatchTopic() {
+    public Topic<String, DeliveryBatch> getDeliveryBatchTopic() {
         SpecificAvroSerde<DeliveryBatch> deliveryBatchSpecificAvroSerde = new SpecificAvroSerde<>();
         deliveryBatchSpecificAvroSerde.configure(
                 Collections.singletonMap(SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryServer), false);
-        return new Topic<>("delivery-batch", Serdes.Long(), deliveryBatchSpecificAvroSerde);
+        return new Topic<>("delivery-batch", Serdes.String(), deliveryBatchSpecificAvroSerde);
     }
 }

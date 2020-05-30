@@ -1,5 +1,6 @@
 package ru.kpfu.itis.warehouse.config;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
@@ -50,15 +51,18 @@ public class WarehouseStreamsConfiguration {
                                 .setShopId(transaction.getShopId())
                                 .setProductId(transaction.getProductId())
                                 .setQuantity(warehouseRecord.getDeliveryThreshold() - updatedInStock);
-                        warehouseRecord.setInStock(warehouseRecord.getDeliveryThreshold());
+                        warehouseRecord.setInStock(2 * warehouseRecord.getDeliveryThreshold());
                     } else {
                         warehouseRecord.setInStock(updatedInStock);
                     }
                     warehouseRepository.save(warehouseRecord);
-                    final Delivery delivery = deliveryBuilder.build();
-                    return KeyValue.pair(delivery.getId(), delivery);
+                    if (StringUtils.isNotBlank(deliveryBuilder.getId())) {
+                        final Delivery delivery = deliveryBuilder.build();
+                        return KeyValue.pair(delivery.getId(), delivery);
+                    }
+                    return KeyValue.pair(id, null);
                 })
-                .filter((id, delivery) -> StringUtils.isNotBlank(delivery.getId()))
+                .filter((id, delivery) -> ObjectUtils.isNotEmpty(delivery))
                 .to(deliveryTopic.name(), Produced.with(deliveryTopic.keySerde(), deliveryTopic.valueSerde()));
         return builder.build();
     }

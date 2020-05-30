@@ -4,6 +4,7 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.kstream.*;
@@ -88,7 +89,7 @@ public class DeliveryProcessingTest {
 
         final Properties consumerConfig = new Properties();
         consumerConfig.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, CLUSTER.bootstrapServers());
-        consumerConfig.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, OUTPUT_TOPIC.keySerde().deserializer().getClass());
+        consumerConfig.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerConfig.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OUTPUT_TOPIC.valueSerde().deserializer().getClass());
         consumerConfig.put(ConsumerConfig.GROUP_ID_CONFIG, "wait-for-output-consumer");
         consumerConfig.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -96,7 +97,7 @@ public class DeliveryProcessingTest {
 
         IntegrationTestUtils.produceValuesSynchronously(INPUT_TOPIC.name(), deliveryInputValues, producerConfig);
         try (ConfigurableApplicationContext context = applicationContext()) {
-            List<KeyValue<Long, DeliveryBatch>> keyValues = IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived(consumerConfig, OUTPUT_TOPIC.name(), expectedBatchOutputValues.size());
+            List<KeyValue<String, DeliveryBatch>> keyValues = IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived(consumerConfig, OUTPUT_TOPIC.name(), expectedBatchOutputValues.size());
 
             List<DeliveryBatch> actualBatchOutputValues = keyValues.stream()
                     .map(kv -> kv.value)

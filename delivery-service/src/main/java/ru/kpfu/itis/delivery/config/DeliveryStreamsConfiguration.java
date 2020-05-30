@@ -34,7 +34,7 @@ public class DeliveryStreamsConfiguration {
 
     @Bean
     public Topology deliveryTopology(@Qualifier("deliveryTopic") final Topic<String, Delivery> deliveryTopic,
-                                     @Qualifier("deliveryBatchTopic") final Topic<Long, DeliveryBatch> deliveryBatchTopic,
+                                     @Qualifier("deliveryBatchTopic") final Topic<String, DeliveryBatch> deliveryBatchTopic,
                                      final ApplicationMetrics applicationMetrics
     ) {
         final StreamsBuilder builder = new StreamsBuilder();
@@ -43,13 +43,13 @@ public class DeliveryStreamsConfiguration {
 
         deliveries
                 .peek((key, value) -> applicationMetrics.getDeliveryCounter().increment())
-                .groupBy((key, delivery) -> delivery.getShopId(), Grouped.with(Serdes.Long(), deliveryTopic.valueSerde()))
+                .groupBy((key, delivery) -> delivery.getShopId().toString(), Grouped.with(Serdes.String(), deliveryTopic.valueSerde()))
                 .windowedBy(TimeWindows.of(Duration.ofMinutes(5)).grace(Duration.ZERO))
                 .aggregate(
                         DeliveryBatch.newBuilder()::build,
                         (aggKey, newValue, aggValue) -> {
-                            aggValue.setId(aggKey.toString());
-                            aggValue.setShopId(aggKey);
+                            aggValue.setId(aggKey);
+                            aggValue.setShopId(Long.parseLong(aggKey));
                             List<ProductQuantity> productQuantities = aggValue.getProductQuantities();
                             productQuantities.add(
                                     ProductQuantity.newBuilder()
@@ -59,15 +59,14 @@ public class DeliveryStreamsConfiguration {
                             );
                             return aggValue;
                         },
-                        Materialized.<Long, DeliveryBatch, WindowStore<Bytes, byte[]>>as("windowed-delivery-batch-store-" + UUID.randomUUID().toString())
-                                .withKeySerde(Serdes.Long())
+                        Materialized.<String, DeliveryBatch, WindowStore<Bytes, byte[]>>as("windowed-delivery-batch-store-" + UUID.randomUUID().toString())
+                                .withKeySerde(Serdes.String())
                                 .withValueSerde(deliveryBatchTopic.valueSerde())
                                 .withRetention(Duration.ofMinutes(5))
                 )
                 .toStream()
                 .peek((key, value) -> applicationMetrics.getDeliveryBatchCounter().increment())
-                .peek((key, value) -> System.out.println("*: right before to. key: " + key.getClass() + ", value: " + value))
-                .to(deliveryBatchTopic.name(), Produced.with(WindowedSerdes.timeWindowedSerdeFrom(Long.class), deliveryBatchTopic.valueSerde()));
+                .to(deliveryBatchTopic.name(), Produced.with(WindowedSerdes.timeWindowedSerdeFrom(String.class), deliveryBatchTopic.valueSerde()));
 
         return builder.build();
     }
