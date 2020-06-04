@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ru.kpfu.itis.delivery.kafka;
+package ru.kpfu.itis.shared.kafka;
 
 import io.confluent.kafka.schemaregistry.RestApp;
 import io.confluent.kafka.schemaregistry.avro.AvroCompatibilityLevel;
@@ -24,7 +24,7 @@ import org.apache.kafka.test.TestUtils;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.kpfu.itis.delivery.zookeeper.ZooKeeperEmbedded;
+import ru.kpfu.itis.shared.zookeeper.ZooKeeperEmbedded;
 
 import java.io.IOException;
 import java.util.Collections;

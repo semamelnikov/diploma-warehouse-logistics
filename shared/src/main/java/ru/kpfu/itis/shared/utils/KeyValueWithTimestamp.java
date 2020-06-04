@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ru.kpfu.itis.delivery.utils;
+package ru.kpfu.itis.shared.utils;
 
 import org.apache.kafka.streams.KeyValue;
 

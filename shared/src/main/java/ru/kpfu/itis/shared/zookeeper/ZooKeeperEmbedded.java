@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ru.kpfu.itis.delivery.zookeeper;
+package ru.kpfu.itis.shared.zookeeper;
 
 import org.apache.curator.test.TestingServer;
 import org.slf4j.Logger;

@@ -20,6 +20,7 @@
         <module>transaction-service</module>
         <module>wordcount-service</module>
         <module>warehouse-service</module>
+        <module>shared</module>
     </modules>
 
     <repositories>

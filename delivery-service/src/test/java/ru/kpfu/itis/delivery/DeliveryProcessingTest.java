@@ -11,8 +11,6 @@ import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import ru.kpfu.itis.batch.avro.DeliveryBatch;
@@ -20,6 +18,8 @@ import ru.kpfu.itis.batch.avro.ProductQuantity;
 import ru.kpfu.itis.delivery.avro.Delivery;
 import ru.kpfu.itis.delivery.domain.model.Topic;
 import ru.kpfu.itis.delivery.metrics.ApplicationMetrics;
+import ru.kpfu.itis.shared.kafka.EmbeddedSingleNodeKafkaCluster;
+import ru.kpfu.itis.shared.utils.IntegrationTestUtils;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -62,7 +62,6 @@ public class DeliveryProcessingTest {
                     .build()
     );
 
-    private static final Logger log = LoggerFactory.getLogger(DeliveryProcessingTest.class);
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
     private KafkaStreams kafkaStreams;
@@ -74,6 +73,7 @@ public class DeliveryProcessingTest {
         }
     }
 
+    @Ignore
     @Test
     public void shouldDemonstrateInteractiveQueriesInApplication() throws ExecutionException, InterruptedException {
         final Topic<String, Delivery> INPUT_TOPIC = getDeliveryTopic();
@@ -168,7 +168,6 @@ public class DeliveryProcessingTest {
         consumerConfig.put(SCHEMA_REGISTRY_URL_CONFIG, CLUSTER.schemaRegistryUrl());
 
         List<KeyValue<Long, DeliveryBatch>> keyValues = IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived(consumerConfig, OUTPUT_TOPIC.name(), expectedBatchOutputValues.size());
-        System.out.println("HELLO SIZE: " + keyValues.size());
 
         List<DeliveryBatch> actualBatchOutputValues = keyValues.stream()
                 .map(kv -> kv.value)
