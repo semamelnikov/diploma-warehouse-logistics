@@ -47,11 +47,12 @@ public class WarehouseStreamsConfiguration {
                     final int updatedInStock = warehouseRecord.getInStock() - transaction.getQuantity();
                     final Delivery.Builder deliveryBuilder = Delivery.newBuilder();
                     if (updatedInStock < warehouseRecord.getDeliveryThreshold()) {
+                        final int inStockAfterDelivery = 2 * warehouseRecord.getDeliveryThreshold();
                         deliveryBuilder.setId(UUID.randomUUID().toString())
                                 .setShopId(transaction.getShopId())
                                 .setProductId(transaction.getProductId())
-                                .setQuantity(warehouseRecord.getDeliveryThreshold() - updatedInStock);
-                        warehouseRecord.setInStock(2 * warehouseRecord.getDeliveryThreshold());
+                                .setQuantity(inStockAfterDelivery - updatedInStock);
+                        warehouseRecord.setInStock(inStockAfterDelivery);
                     } else {
                         warehouseRecord.setInStock(updatedInStock);
                     }
